@@ -13,7 +13,7 @@ import cuentas.*;
 
 import java.util.List;
 
-public class BancoTest {
+public class BancoTest{
 	private Cliente cliente1;
     private Cliente cliente2;
     private Cliente cliente3;
@@ -50,7 +50,7 @@ public class BancoTest {
         cliente5 = new Cliente("44556677", "Roberto Díaz");
         cliente6 = new Cliente("55667788", "Sofía Ruíz");
         cliente7 = new Cliente("55667788", "Sofía Ruíz");
-       
+     
         
         cuentaSueldo = new CuentaSueldo("CBU001", cliente1, 2000.0);
         cajaDeAhorros = new CajaDeAhorros("CBU002", cliente1, 10000.0);
@@ -71,7 +71,7 @@ public class BancoTest {
         cuentaCorriente6 = new CuentaCorriente("CBU018", cliente6, 2000.0,0);
         
         banco = new Banco();
-        
+  
             banco.agregarCliente(cliente1);
             banco.agregarCliente(cliente2);
             banco.agregarCliente(cliente3);
@@ -84,7 +84,7 @@ public class BancoTest {
 			
 		}
 
-        //reemplazar con agregarcuenta en vez de dardealtacuenta y pasamos la cuenta
+        /* reemplazar con agregarcuenta en vez de dardealtacuenta y pasamos la cuenta
         try {
         	CuentaSueldo cuentaSueldo = new CuentaSueldo("CBU001", cliente1, 2000.0);        	
         	//cuentaSueldo.setDni(cliente1);
@@ -114,199 +114,176 @@ public class BancoTest {
         }
         assertEquals(6 , banco.getCantidadClientes());
         assertEquals(12 , banco.getCantidadCuentas());
-        
+        */
     }
     
     //1
     @Test
     public void queSePuedaExtraer1000PesosDeUnaCuentaSueldoConSaldoIgualA2000Pesos() throws SaldoInsuficienteException {
-        Cliente cliente = new Cliente("12345678", "Juan Pérez");
-        CuentaSueldo cuenta = new CuentaSueldo("CBU123", cliente, 2000.0);
-
-        cuenta.extraer(1000.0);
-
-        assertEquals(1000.0, cuenta.getSaldo(), 0.01);
+        cuentaSueldo.extraer(1000);
+        assertEquals(1000, cuentaSueldo.getSaldo(), 0.01);
     }
     
     //2
-    
     @Test
-    public void queNoSePuedaExtraer2500PesosDeUnaCuentaSueldoConSaldoIgualA2000Pesos() {
-        CuentaSueldo cuenta = new CuentaSueldo("CBU999", cliente1, 2000);
-
-        assertThrows(Exception.class, () -> {
-            cuenta.extraer(2500);
+    public void queNoSePuedaExtraer2500PesosDeUnaCuentaSueldoConSaldoIgualA2000Pesos() throws SaldoInsuficienteException {
+        assertThrows(SaldoInsuficienteException.class, () -> {
+            cuentaSueldo.extraer(2500);
         });
-
-        assertEquals(2000, cuenta.getSaldo(), 0.01);
+        assertEquals(2000, cuentaSueldo.getSaldo(), 0.01);
     }
     
     //3
-    
     @Test
-    public void queAlRealizar6ExtraccionesDe1000EnUnaCajaDeAhorroConSaldoInicialDe10000SuSaldoFinalSea3900() {
-   
-        CajaDeAhorros cuenta = new CajaDeAhorros("CBU456", cliente1, 10000);
-
+    public void queAlRealizar6ExtraccionesDe1000EnUnaCajaDeAhorroConSaldoInicialDe10000SuSaldoFinalSea3900() throws SaldoInsuficienteException {
         for (int i = 0; i < 6; i++) {
-            cuenta.extraer(1000);  // la 6ta tiene recargo de 100
+            cajaDeAhorros.extraer(1000);  // la 6ta tiene recargo de 100
         }
-
-        assertEquals(3900, cuenta.getSaldo(), 0.01);
+        assertEquals(3900, cajaDeAhorros.getSaldo(), 0.01);
     }
     
     //4
     @Test
-    public void queAlRealizar7ExtraccionesDe1000EnUnaCajaDeAhorroConSaldoInicialDe7000SoloLaUltimaLanceExcepcionSaldoInsuficiente() {
-
-        CajaDeAhorros cuenta = new CajaDeAhorros("CBU777", cliente1, 7000);
-
-        // extracciones valid
+    public void queAlRealizar7ExtraccionesDe1000EnUnaCajaDeAhorroConSaldoInicialDe7000SoloLaUltimaLanceExcepcionSaldoInsuficiente() throws SaldoInsuficienteException {
+        // extrac valids
         for (int i = 0; i < 6; i++) {
-            cuenta.extraer(1000); // la 6ta extrac ya incluye recargo 1100 si empieza justo ahi
+            cajaDeAhorros4.extraer(1000); // la 6ta extrac ya incluye recargo 1100 si empieza justo ahi
         }
-
-        assertThrows(RuntimeException.class, () -> {
-            cuenta.extraer(1000); // la 7ma no tiene saldo suficiente
-        });
-
         // validar q saldo desp de 6 extrac sea 900
-        assertEquals(900, cuenta.getSaldo(), 0.01);
+        assertEquals(900, cajaDeAhorros4.getSaldo(), 0.01);
+        assertThrows(SaldoInsuficienteException.class, () -> {
+            cajaDeAhorros4.extraer(1000); // la 7ma no tiene saldo suficiente
+        });
     }
     
     //5
     @Test
     public void queSeCobreRecargoAlRealizarUnaExtraccionMayorAlSaldoEnUnaCuentaCorriente() {
-        CuentaCorriente cuenta = new CuentaCorriente("CBU123", cliente1, 100, 150); // saldo: 100, descubierto: 150
-        cuenta.extraer(200); // se extrae 200: 100 del saldo, 100 del descubierto → fee: 5
-
-        assertEquals(-105, cuenta.getSaldo(), 0.01); // 100 (descubierto) + 5 (fee)
+        CuentaCorriente cuenta = new CuentaCorriente("123", cliente1, 100, 150);
+        cuenta.extraer(200);
+        assertEquals(-105, cuenta.getSaldo(), 0.01);
     }
     
     //6
     @Test
     public void queAlIntentarDarDeAltaUnaCuentaAUnClienteInexistenteLanceExcepcion() {
-        Banco banco = new Banco(); // banco sin clientes
-        CuentaSueldo cuenta = new CuentaSueldo("CBU000", cliente1, 5000); // cliente con DNI 11111111 no existe
-        assertThrows(RuntimeException.class, () -> {
+        Banco banco = new Banco();
+        Cliente noExiste = new Cliente("1203920", "Martin Boga"); // creo cliente q no existe
+        CuentaSueldo cuenta = new CuentaSueldo("CBU000", noExiste, 5000); // y su cuenta q no existe
+        assertThrows(ClienteInexistenteException.class, () -> {
             banco.agregarCuenta(cuenta);
         });
     }
     
     //7
-    /*
     @Test
     public void queAlBuscarUnaCuentaPorCBUErroneoLanceExcepcion() {
-        // Arrange
-        Banco banco = new Banco(); // banco sin ctas
-        /* crear excepcion: public Cuenta obtenerCuentaPorCBU(String cbu) {
-    if (!cuentas.containsKey(cbu)) {
-        throw new RuntimeException("Cuenta no encontrada con ese CBU.");
-    }
-    return cuentas.get(cbu);
-}
-        String cbuInvalido = "CBU_INEXISTENTE";
+        Banco banco = new Banco();
+        String cbuInvalido = "12093029310293019230910320139";
         assertThrows(RuntimeException.class, () -> {
-            banco.obtenerCuentaPorCBU(cbuInvalido);
+            banco.buscarCuentaPorCbu(cbuInvalido);
         });
-    }*/
+    }
    
     //8
     @Test
-    public void queSeObtengaElListadoDeClientesOrdenadosPorDni() {
+    public void queSeObtengaElListadoDeClientesOrdenadosPorDni() throws ClienteDuplicadoException {
         Banco banco = new Banco();
-        Cliente c1 = new Cliente("99999999", "Juan Perez");
-        Cliente c2 = new Cliente("11111111", "Ana Gomez");
-        Cliente c3 = new Cliente("55555555", "Luis Torres");
-
+        Cliente c1= new Cliente("999", "Juan Perez");
+        Cliente c2 = new Cliente("111", "Maria Lopez");
+        Cliente c3 = new Cliente("555", "Carlos Gomez");
+        
         banco.agregarCliente(c1);
         banco.agregarCliente(c2);
         banco.agregarCliente(c3);
 
         List<Cliente> clientesOrdenados = banco.obtenerClientesOrdenadosPorDni();
         
-        assertEquals("11111111", clientesOrdenados.get(0).getDni());
-        assertEquals("55555555", clientesOrdenados.get(1).getDni());
-        assertEquals("99999999", clientesOrdenados.get(2).getDni());
+        assertEquals("111", clientesOrdenados.get(0).getDni());
+        assertEquals("555", clientesOrdenados.get(1).getDni());
+        assertEquals("999", clientesOrdenados.get(2).getDni());
     }
     
     //9
     @Test
-    public void queSeObtengaUnListadoDeTodasLasCuentasOrdenadoPorSaldo() {
-        Banco banco = new Banco();
+    public void queSeObtengaUnListadoDeTodasLasCuentasOrdenadoPorSaldo() throws ClienteInexistenteException, ClienteDuplicadoException {
+        Banco banco2 = new Banco();
+        Cliente cliente1 = new Cliente("111", "cliente 1");
+        Cliente cliente2 = new Cliente("222", "cliente 2");
+        Cliente cliente3 = new Cliente("333", "cliente 3");
+        
+        banco2.agregarCliente(cliente1);
+        banco2.agregarCliente(cliente2);
+        banco2.agregarCliente(cliente3);
 
-        Cuenta c1 = new CuentaSueldo("CBU001", cliente1, 3000);
-        Cuenta c2 = new CajaDeAhorros("CBU002", cliente2, 1000);
-        Cuenta c3 = new CuentaCorriente("CBU003", cliente3, 5000, 1000);
+        Cuenta c1 = new CuentaSueldo("1001", cliente1, 3000);
+        Cuenta c2 = new CajaDeAhorros("2002", cliente2, 1000);
+        Cuenta c3 = new CuentaCorriente("3003", cliente3, 5000, 1000);
+        
+        banco2.agregarCuenta(c1);
+        banco2.agregarCuenta(c2);
+        banco2.agregarCuenta(c3);
 
-        banco.agregarCliente(new Cliente("11111111", "Cliente 1"));
-        banco.agregarCliente(new Cliente("22222222", "Cliente 2"));
-        banco.agregarCliente(new Cliente("33333333", "Cliente 3"));
+        List<Cuenta> cuentasOrdenadas = banco2.obtenerCuentasOrdenadasPorSaldo();
 
-        banco.agregarCuenta(c1);
-        banco.agregarCuenta(c2);
-        banco.agregarCuenta(c3);
-
-        List<Cuenta> cuentasOrdenadas = banco.obtenerCuentasOrdenadasPorSaldo();
-
-        assertEquals("CBU002", cuentasOrdenadas.get(0).getCBU()); // saldo 1000
-        assertEquals("CBU001", cuentasOrdenadas.get(1).getCBU()); // saldo 3000
-        assertEquals("CBU003", cuentasOrdenadas.get(2).getCBU()); // saldo 5000
+        assertEquals("2002", cuentasOrdenadas.get(0).getCBU()); // saldo 1000
+        assertEquals("1001", cuentasOrdenadas.get(1).getCBU()); // saldo 3000
+        assertEquals("3003", cuentasOrdenadas.get(2).getCBU()); // saldo 5000
     }
     
     //10
     @Test
-    public void queSeObtengaUnListadoDeCuentasCorrientesOrdenadoPorSaldo() {
-        Banco banco = new Banco();
+    public void queSeObtengaUnListadoDeCuentasCorrientesOrdenadoPorSaldo() throws ClienteInexistenteException, ClienteDuplicadoException {
+        Banco banco3 = new Banco();
+        Cliente cliente1 = new Cliente("1", "cliente 1");
+        Cliente cliente2 = new Cliente("2", "cliente 2");
+        Cliente cliente3 = new Cliente("3", "cliente 3");
+        Cliente cliente4 = new Cliente("4", "cliente 4");
+        banco3.agregarCliente(cliente1);
+        banco3.agregarCliente(cliente2);
+        banco3.agregarCliente(cliente3);
+        banco3.agregarCliente(cliente4);
+        
+        CuentaCorriente cc1 = new CuentaCorriente("1", cliente1, 3000, 1000);
+        CuentaCorriente cc2 = new CuentaCorriente("2", cliente2, 1000, 500);
+        CuentaSueldo cs = new CuentaSueldo("3", cliente3, 5000);
+        CajaDeAhorros ca = new CajaDeAhorros("4", cliente4, 2000);
+        banco3.agregarCuenta(cc1);
+        banco3.agregarCuenta(cc2);
+        banco3.agregarCuenta(cs);
+        banco3.agregarCuenta(ca);
 
-        CuentaCorriente cc1 = new CuentaCorriente("CBU001", cliente1, 3000, 1000);
-        CuentaCorriente cc2 = new CuentaCorriente("CBU002", cliente2, 1000, 500);
-        CuentaSueldo cs = new CuentaSueldo("CBU003", cliente3, 5000);
-        CajaDeAhorros ca = new CajaDeAhorros("CBU004", cliente4, 2000);
+        List<CuentaCorriente> cuentasCorrientes = banco3.obtenerCuentasCorrientesOrdenadasPorSaldo();
 
-        banco.agregarCliente(new Cliente("11111111", "Cliente 1"));
-        banco.agregarCliente(new Cliente("22222222", "Cliente 2"));
-        banco.agregarCliente(new Cliente("33333333", "Cliente 3"));
-        banco.agregarCliente(new Cliente("44444444", "Cliente 4"));
-
-        banco.agregarCuenta(cc1);
-        banco.agregarCuenta(cc2);
-        banco.agregarCuenta(cs);
-        banco.agregarCuenta(ca);
-
-        List<CuentaCorriente> cuentasCorrientes = banco.obtenerCuentasCorrientesOrdenadasPorSaldo();
-
-        assertEquals("CBU002", cuentasCorrientes.get(0).getCBU());
-        assertEquals("CBU001", cuentasCorrientes.get(1).getCBU());
+        assertEquals("2", cuentasCorrientes.get(0).getCBU());
+        assertEquals("1", cuentasCorrientes.get(1).getCBU());
         assertEquals(2, cuentasCorrientes.size());
     }
     
     //11
-    /*
     @Test
-    public void queSeObtengaUnListadoDeCuentasCorrientesDeudorasOrdenadoPorSaldoDeudor() {
-        Banco banco = new Banco();
+    public void queSeObtengaUnListadoDeCuentasCorrientesDeudorasOrdenadoPorSaldoDeudor() throws ClienteDuplicadoException, ClienteInexistenteException {
+        Banco banco4 = new Banco();
 
-        CuentaCorriente cc1 = new CuentaCorriente("CBU001", cliente1, -500, 1000);  // deuda 500
-        CuentaCorriente cc2 = new CuentaCorriente("CBU002", cliente2, -2000, 1500); // deuda 2000
-        CuentaCorriente cc3 = new CuentaCorriente("CBU003", cliente3, 1000, 500);   // no deuda
-        CuentaSueldo cs = new CuentaSueldo("CBU004", cliente4, 3000);
+        CuentaCorriente cc1 = new CuentaCorriente("1", cliente1, -1000, 1000);  // deuda -1k
+        CuentaCorriente cc2 = new CuentaCorriente("2", cliente2, -2000, 1500); // deuda -2k
+        CuentaCorriente cc3 = new CuentaCorriente("3", cliente3, 1000, 500);   // sin deuda
+        CuentaSueldo cs = new CuentaSueldo("4", cliente4, 3000); // es otra cta no cc, no la deberia tomar
 
-        banco.agregarCliente(new Cliente("11111111", "Cliente 1"));
-        banco.agregarCliente(new Cliente("22222222", "Cliente 2"));
-        banco.agregarCliente(new Cliente("33333333", "Cliente 3"));
-        banco.agregarCliente(new Cliente("44444444", "Cliente 4"));
+        banco4.agregarCliente(cliente1);
+        banco4.agregarCliente(cliente2);
+        banco4.agregarCliente(cliente3);
+        banco4.agregarCliente(cliente4);
 
-        banco.agregarCuenta(cc1);
-        banco.agregarCuenta(cc2);
-        banco.agregarCuenta(cc3);
-        banco.agregarCuenta(cs);
+        banco4.agregarCuenta(cc1);
+        banco4.agregarCuenta(cc2);
+        banco4.agregarCuenta(cc3);
+        banco4.agregarCuenta(cs);
 
-        List<CuentaCorriente> cuentasDeudoras = banco.obtenerCuentasCorrientesDeudorasOrdenadasPorSaldoDeudor();
+        List<CuentaCorriente> cuentasDeudoras = banco4.obtenerCuentasCorrientesDeudorasOrdenadasPorSaldoDeudor();
 
         assertEquals(2, cuentasDeudoras.size());
-        assertEquals("CBU002", cuentasDeudoras.get(0).getCBU()); // mayor deuda primero (-2000)
-        assertEquals("CBU001", cuentasDeudoras.get(1).getCBU()); // segunda deuda (-500)
+        assertEquals("2", cuentasDeudoras.get(0).getCBU()); 
+        assertEquals("1", cuentasDeudoras.get(1).getCBU());
     }
-    */
 }

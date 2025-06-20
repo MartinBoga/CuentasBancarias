@@ -5,4 +5,3 @@ public class SaldoInsuficienteException extends Exception {
         super(mensaje);
     }
 }
-

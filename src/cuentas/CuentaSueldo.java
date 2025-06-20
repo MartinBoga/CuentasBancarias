@@ -3,7 +3,6 @@ package cuentas;
 import banco.*;
 
 public class CuentaSueldo extends Cuenta {
-
     public CuentaSueldo(String cbu, Cliente cliente, double saldoInicial) {
         super(cbu, cliente, saldoInicial);
     }

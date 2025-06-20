@@ -18,7 +18,14 @@ public abstract class Cuenta implements Comparable<Cuenta> {
         saldo += monto;
     }
 
-    public abstract void extraer(double monto) throws SaldoInsuficienteException;;
+    public abstract void extraer(double monto) throws SaldoInsuficienteException;
+
+    // ordena x cbu osaldo
+    @Override
+    public int compareTo(Cuenta otra) {
+        //return this.cbu.compareTo(otra.cbu);
+    	return Double.compare(this.saldo, otra.saldo);
+    }
 
     public String getCBU() {
         return cbu;
@@ -34,11 +41,5 @@ public abstract class Cuenta implements Comparable<Cuenta> {
 
     public String getDni() {
         return cliente.getDni();
-    }
-
-    // orden x cbu
-    @Override
-    public int compareTo(Cuenta otra) {
-        return this.cbu.compareTo(otra.cbu);
     }
 }

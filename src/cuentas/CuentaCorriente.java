@@ -3,7 +3,6 @@ package cuentas;
 import banco.*;
 
 public class CuentaCorriente extends Cuenta {
-
     private double limiteDescubierto;
 
     public CuentaCorriente(String cbu, Cliente cliente, double saldoInicial, double limiteDescubierto) {

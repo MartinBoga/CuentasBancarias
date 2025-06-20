@@ -11,18 +11,21 @@ public class CajaDeAhorros extends Cuenta {
     }
 
     @Override
-    public void extraer(double monto) {
-        double recargo = (cantidadExtracciones >= 5) ? 100 : 0;
-        double total = monto + recargo;
+    public void extraer(double monto) throws SaldoInsuficienteException {
+        double montoTotal = monto;
+        cantidadExtracciones++;
 
-        if (saldo >= total) {
-            saldo -= total;
-            cantidadExtracciones++;
-        } else {
-            throw new RuntimeException("saldo insuficiente");
+        if (cantidadExtracciones > 5) {
+            montoTotal += 100;
         }
-    }
 
+	        if (saldo >= montoTotal) {
+	            saldo -= montoTotal;
+	        } else {
+	            throw new SaldoInsuficienteException("saldo insuficiente");
+	        }
+    }
+    
     public int getCantidadExtracciones() {
         return cantidadExtracciones;
     }

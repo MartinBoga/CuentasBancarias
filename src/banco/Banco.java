@@ -4,33 +4,43 @@ import java.util.*;
 import cuentas.*;
 
 public class Banco {
-
 	public String sucursal;
-	
     private List<Cliente> clientes = new ArrayList<>();
     private List<Cuenta> cuentas = new ArrayList<>();
 
-    public void agregarCliente(Cliente cliente) {
+    //metodos
+    public void agregarCliente(Cliente cliente) throws ClienteDuplicadoException {
+        for (int i = 0; i < clientes.size(); i++) {
+            if (clientes.get(i).getDni().equals(cliente.getDni())) {
+                throw new ClienteDuplicadoException("cliente duplicado");
+            }
+        }
         clientes.add(cliente);
     }
 
-    //metodos
-    public void agregarCuenta(Cuenta cuenta) {
+    private boolean existeCliente(String dni) {
+        for (Cliente c : clientes) {
+            if (c.getDni().equals(dni)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void agregarCuenta(Cuenta cuenta) throws ClienteInexistenteException {
         if (!existeCliente(cuenta.getDni())) {
-            throw new RuntimeException("el cliente no existe");
+            throw new ClienteInexistenteException("cliente inexistente");
         }
         cuentas.add(cuenta);
     }
 
-    private boolean existeCliente(String dni) {
-        return clientes.stream().anyMatch(c -> c.getDni().equals(dni));
-    }
-
     public Cuenta buscarCuentaPorCbu(String cbu) {
-        return cuentas.stream()
-            .filter(c -> c.getCBU().equals(cbu))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("CBU no encontrado"));
+        for (Cuenta cuenta : cuentas) {
+            if (cuenta.getCBU().equals(cbu)) {
+                return cuenta;
+            }
+        }
+        throw new RuntimeException("no se encontro el CBU");
     }
 
     public void depositar(String cbu, double monto) {
@@ -48,33 +58,45 @@ public class Banco {
         destino.depositar(monto);
     }
 
+    //metodo para el test 8
     public List<Cliente> obtenerClientesOrdenadosPorDni() {
         List<Cliente> copia = new ArrayList<>(clientes);
         Collections.sort(copia);
         return copia;
     }
 
+    //metodo para el test 9
     public List<Cuenta> obtenerCuentasOrdenadasPorSaldo() {
         List<Cuenta> copia = new ArrayList<>(cuentas);
         Collections.sort(copia);
         return copia;
     }
 
+    //metodo para test 10
     public List<CuentaCorriente> obtenerCuentasCorrientesOrdenadasPorSaldo() {
-        return cuentas.stream()
-            .filter(c -> c instanceof CuentaCorriente)
-            .map(c -> (CuentaCorriente) c)
-            .sorted()
-            .toList();
+        List<CuentaCorriente> lista = new ArrayList<>();
+        for (Cuenta c : cuentas) {
+            if (c instanceof CuentaCorriente) {
+                lista.add((CuentaCorriente) c);
+            }
+        }
+        Collections.sort(lista);
+        return lista;
     }
 
-    public List<CuentaCorriente> obtenerCuentasCorrientesDeudorasOrdenadas() {
-        return cuentas.stream()
-            .filter(c -> c instanceof CuentaCorriente)
-            .map(c -> (CuentaCorriente) c)
-            .filter(c -> c.getSaldo() < 0)
-            .sorted()
-            .toList();
+    //test 11
+    public List<CuentaCorriente> obtenerCuentasCorrientesDeudorasOrdenadasPorSaldoDeudor() {
+        List<CuentaCorriente> deudoras = new ArrayList<>();
+        for (Cuenta cuenta : cuentas) {
+            if (cuenta instanceof CuentaCorriente) {
+                CuentaCorriente cc = (CuentaCorriente) cuenta;
+                if (cc.getSaldo() < 0) {
+                    deudoras.add(cc);
+                }
+            }
+        }
+        Collections.sort(deudoras);
+        return deudoras;
     }
 
     // getters setters
@@ -102,46 +124,11 @@ public class Banco {
 		this.cuentas = cuentas;
 	}
     
-   
-    /* test 9 public List<Cuenta> obtenerCuentasOrdenadasPorSaldo() {
-    List<Cuenta> lista = new ArrayList<>(cuentas.values());
-    lista.sort(Comparator.comparingDouble(Cuenta::getSaldo));
-    return lista;
-    }
+	public int getCantidadClientes() {
+	    return clientes.size();
+	}
+
+	public int getCantidadCuentas() {
+	    return cuentas.size();
+	}
 }
-
-     * 
-     * */
-    
-    /*
-     * test 10 
-     * 
-     * public List<CuentaCorriente> obtenerCuentasCorrientesOrdenadasPorSaldo() {
-    return cuentas.values().stream()
-        .filter(c -> c instanceof CuentaCorriente)
-        .map(c -> (CuentaCorriente) c)
-        .sorted(Comparator.comparingDouble(Cuenta::getSaldo))
-        .toList();
-}
-
-     * 
-     * */
-    
-    /*
-     * test 11
-     * 
-     * public List<CuentaCorriente> obtenerCuentasCorrientesDeudorasOrdenadasPorSaldoDeudor() {
-    return cuentas.values().stream()
-        .filter(c -> c instanceof CuentaCorriente)
-        .map(c -> (CuentaCorriente) c)
-        .filter(c -> c.getSaldo() < 0)
-        .sorted(Comparator.comparingDouble(Cuenta::getSaldo))
-        .toList();
-}
-
-     * */
-    
-    
-}
-
-
